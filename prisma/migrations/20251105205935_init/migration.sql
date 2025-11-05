@@ -7,7 +7,8 @@ CREATE TABLE "User" (
     "image" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'USER'
+    "role" TEXT NOT NULL DEFAULT 'USER',
+    "bartrCount" INTEGER NOT NULL DEFAULT 0
 );
 
 -- CreateTable

@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  // Updated with bartrCount and TRADED status
 }
 
 datasource db {
@@ -16,6 +17,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   role          Role      @default(USER)
+  bartrCount    Int       @default(0)
   profile       Profile?
   listings      Listing[]
   bartrInitiator Bartr[]  @relation("BartrInitiator")
@@ -204,6 +206,7 @@ enum ListingStatus {
   ACTIVE
   INACTIVE
   COMPLETED
+  TRADED
 }
 
 enum BartrStatus {

@@ -17,7 +17,11 @@ export default async function BrowsePage() {
   }
 
   const listings = await prisma.listing.findMany({
-    where: { status: "ACTIVE" },
+    where: { 
+      status: { 
+        in: ["ACTIVE", "TRADED"] 
+      } 
+    },
     include: {
       user: {
         select: {

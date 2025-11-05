@@ -8,6 +8,7 @@ interface ProfileUser {
   name: string | null;
   email: string;
   image: string | null;
+  bartrCount: number;
   profile: {
     bio: string | null;
     location: string | null;
@@ -17,6 +18,26 @@ interface ProfileUser {
     id: string;
     title: string;
     imageUrl: string | null;
+  }>;
+  completedBartrs: Array<{
+    id: string;
+    status: string;
+    completedAt: Date | null;
+    listing: {
+      id: string;
+      title: string;
+      imageUrl: string | null;
+    };
+    initiator: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
+    receiver: {
+      id: string;
+      name: string | null;
+      image: string | null;
+    };
   }>;
   reviewsReceived: Array<{
     id: string;
@@ -99,7 +120,7 @@ export default function ProfileClient({ user, isOwnProfile }: ProfileClientProps
 
       <section className="flex justify-around items-center py-4 bg-gray-50 rounded-xl mb-8">
         <div className="text-center">
-          <p className="text-lg font-bold">{user.totalBartrs}</p>
+          <p className="text-lg font-bold">{user.bartrCount}</p>
           <p className="text-xs text-[#B0A9A9]">Total Bartrs</p>
         </div>
         <div className="text-center">
@@ -182,7 +203,48 @@ export default function ProfileClient({ user, isOwnProfile }: ProfileClientProps
         {activeTab === "history" && (
           <>
             <h3 className="text-xl font-bold mb-4">Bartr History</h3>
-            <p className="text-center text-[#B0A9A9] py-8">History feature coming soon</p>
+            <div className="space-y-4">
+              {user.completedBartrs.map((bartr) => {
+                const otherUser = bartr.initiator.id === user.id ? bartr.receiver : bartr.initiator;
+                return (
+                  <div key={bartr.id} className="border border-[#EAEAEA] rounded-xl p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="w-20 h-20 bg-[#F7F7F7] rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={bartr.listing.imageUrl || "https://i.imgur.com/Qj04L0z.png"}
+                          alt={bartr.listing.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm mb-1">{bartr.listing.title}</h4>
+                        <div className="flex items-center gap-2 mb-2">
+                          <img
+                            src={otherUser.image || "https://raw.githubusercontent.com/kryptobolt07/assests/main/chat/profile_1.svg"}
+                            alt={otherUser.name || "User"}
+                            className="w-6 h-6 rounded-full object-cover"
+                          />
+                          <p className="text-xs text-[#6b6b6b]">
+                            Traded with <span className="font-semibold">{otherUser.name}</span>
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-[#B0A9A9]">
+                            {bartr.completedAt ? new Date(bartr.completedAt).toLocaleDateString() : "N/A"}
+                          </span>
+                          <span className="bg-[#5D845F] text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            {bartr.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {user.completedBartrs.length === 0 && (
+              <p className="text-center text-[#B0A9A9] py-8">No completed bartrs yet</p>
+            )}
           </>
         )}
 

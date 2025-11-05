@@ -30,6 +30,10 @@ export default async function EditListingPage({ params }: { params: Promise<{ id
     redirect("/browse");
   }
 
+  if (listing.status === "TRADED") {
+    redirect(`/listings/${id}`);
+  }
+
   return (
     <div className="bg-white text-[#333333] min-h-screen pb-20 md:pb-0">
       <Navbar user={session.user} />

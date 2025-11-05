@@ -72,6 +72,37 @@ export default async function ProfilePage() {
     ? user.reviewsReceived.reduce((sum, review) => sum + review.rating, 0) / user.reviewsReceived.length
     : 0;
 
+  const completedBartrs = await prisma.bartr.findMany({
+    where: {
+      OR: [{ initiatorId: user.id }, { receiverId: user.id }],
+      status: "COMPLETED",
+    },
+    include: {
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+        },
+      },
+      initiator: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+      receiver: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+    orderBy: { completedAt: "desc" },
+  });
+
   return (
     <div className="bg-white text-[#333333] min-h-screen pb-20 md:pb-0">
       <Navbar user={session.user} />
@@ -79,6 +110,7 @@ export default async function ProfilePage() {
       <ProfileClient
         user={{
           ...user,
+          completedBartrs,
           totalBartrs,
           totalDonations,
           averageRating,

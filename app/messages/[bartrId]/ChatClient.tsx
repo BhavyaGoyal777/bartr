@@ -203,7 +203,8 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
   const handleSendCloseDealRequest = async () => {
     setShowMenu(false);
     try {
-      const response = await fetch(`/api/bartrs/${bartr.id}/messages`, {
+      // First, send the message
+      const messageResponse = await fetch(`/api/bartrs/${bartr.id}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -212,12 +213,22 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
         }),
       });
 
-      if (response.ok) {
-        const message = await response.json();
-        setBartr({
-          ...bartr,
-          messages: [...bartr.messages, message],
+      if (messageResponse.ok) {
+        const message = await messageResponse.json();
+        
+        // Then, set the sender's confirmation flag
+        const completeResponse = await fetch(`/api/bartrs/${bartr.id}/complete`, {
+          method: "POST",
         });
+        
+        if (completeResponse.ok) {
+          const updatedBartr = await completeResponse.json();
+          setBartr({
+            ...updatedBartr,
+            messages: [...bartr.messages, message],
+          });
+        }
+        
         setTimeout(() => {
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 100);
@@ -240,14 +251,33 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
 
       if (response.ok) {
         const message = await response.json();
-        setBartr({
-          ...bartr,
-          messages: [...bartr.messages, message],
-        });
         
         if (accept) {
-          // Call the complete API for two-way confirmation
-          await handleCompleteBartr();
+          // Call the complete API - this will set receiver's flag and complete if both confirmed
+          const completeResponse = await fetch(`/api/bartrs/${bartr.id}/complete`, {
+            method: "POST",
+          });
+          
+          if (completeResponse.ok) {
+            const updatedBartr = await completeResponse.json();
+            setBartr({
+              ...updatedBartr,
+              messages: [...updatedBartr.messages, message],
+            });
+          }
+        } else {
+          // If declined, reset both confirmation flags
+          const resetResponse = await fetch(`/api/bartrs/${bartr.id}/complete?reset=true`, {
+            method: "POST",
+          });
+          
+          if (resetResponse.ok) {
+            const updatedBartr = await resetResponse.json();
+            setBartr({
+              ...updatedBartr,
+              messages: [...updatedBartr.messages, message],
+            });
+          }
         }
         
         setTimeout(() => {
@@ -385,11 +415,16 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
           <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F9F9F9]">
             {bartr.messages.map((message) => {
               const isOwn = message.sender.id === currentUserId;
-              console.log('Message:', message.content, 'Type:', message.messageType);
               const isCloseDealRequest = message.messageType === "CLOSE_DEAL_REQUEST";
               const isCloseDealResponse = message.messageType === "CLOSE_DEAL_ACCEPTED" || message.messageType === "CLOSE_DEAL_REJECTED";
               
               if (isCloseDealRequest) {
+                // Don't show action buttons if trade is already completed
+                const isTradeCompleted = bartr.status === "COMPLETED";
+                const isInitiator = bartr.initiatorId === currentUserId;
+                const currentUserConfirmed = isInitiator ? bartr.initiatorConfirmed : bartr.receiverConfirmed;
+                const otherUserConfirmed = isInitiator ? bartr.receiverConfirmed : bartr.initiatorConfirmed;
+                
                 return (
                   <div key={message.id} className="flex justify-center">
                     <div className="max-w-md w-full bg-gradient-to-r from-[#EAF0E8] to-[#E0EBE0] border-2 border-[#5D845F] rounded-xl p-4 shadow-md">
@@ -402,9 +437,15 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
                         <div className="flex-1">
                           <p className="font-semibold text-[#333333]">{message.sender.name} wants to finalize the trade</p>
                           <p className="text-xs text-[#6b6b6b]">{message.content}</p>
+                          <div className="mt-2 flex items-center gap-2 text-xs text-[#5D845F]">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <span>Trade: {bartr.listing.title}</span>
+                          </div>
                         </div>
                       </div>
-                      {!isOwn && (
+                      {!isTradeCompleted && !isOwn && !currentUserConfirmed && (
                         <div className="flex gap-2 mt-3">
                           <button
                             onClick={() => handleRespondToCloseDeal(true)}
@@ -420,8 +461,14 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
                           </button>
                         </div>
                       )}
-                      {isOwn && (
+                      {!isTradeCompleted && !isOwn && currentUserConfirmed && (
+                        <p className="text-xs text-green-700 text-center mt-2 font-semibold">✓ You confirmed! Waiting for {message.sender.name} to confirm...</p>
+                      )}
+                      {!isTradeCompleted && isOwn && !otherUserConfirmed && (
                         <p className="text-xs text-[#6b6b6b] text-center mt-2">Waiting for response...</p>
+                      )}
+                      {!isTradeCompleted && isOwn && otherUserConfirmed && (
+                        <p className="text-xs text-green-700 text-center mt-2 font-semibold">✓ They confirmed! Waiting for you to confirm...</p>
                       )}
                     </div>
                   </div>
@@ -472,8 +519,15 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
           </div>
 
           <form onSubmit={handleSendMessage} className="border-t border-[#EAEAEA] p-4 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+            {bartr.status === "COMPLETED" && (
+              <div className="mb-3 p-3 bg-gradient-to-r from-[#5D845F]/10 to-[#4d6f4f]/10 border border-[#5D845F]/30 rounded-lg text-center">
+                <p className="text-sm font-semibold text-[#5D845F]">
+                  ✓ Trade Completed! This item has been marked as traded.
+                </p>
+              </div>
+            )}
             <div className="flex gap-3 items-center relative">
-              {bartr.status === "ACCEPTED" && (
+              {(bartr.status === "ACCEPTED" || bartr.status === "COMPLETED") && (
                 <div className="relative">
                   <button
                     type="button"
@@ -503,7 +557,8 @@ export default function ChatClient({ bartr: initialBartr, offeredListing, curren
                       <button
                         type="button"
                         onClick={handleSendCloseDealRequest}
-                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm"
+                        disabled={bartr.status === "COMPLETED"}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-[#5D845F]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

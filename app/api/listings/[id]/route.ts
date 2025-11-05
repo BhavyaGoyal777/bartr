@@ -29,6 +29,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    if (listing.status === "TRADED") {
+      return NextResponse.json({ error: "Cannot delete a traded listing" }, { status: 400 });
+    }
+
     // Soft delete - update status instead of deleting to preserve trade history
     await prisma.listing.update({
       where: { id },
@@ -67,6 +71,10 @@ export async function PATCH(
 
     if (listing.userId !== session.user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    if (listing.status === "TRADED") {
+      return NextResponse.json({ error: "Cannot edit a traded listing" }, { status: 400 });
     }
 
     const body = await request.json();

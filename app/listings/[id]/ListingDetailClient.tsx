@@ -50,8 +50,14 @@ export default function ListingDetailClient({
   const [deleting, setDeleting] = useState(false);
 
   const isOwnListing = listing.userId === currentUserId;
+  const isTraded = listing.status === "TRADED";
 
   const handleDelete = async () => {
+    if (isTraded) {
+      alert("Cannot delete a traded listing");
+      return;
+    }
+    
     if (!confirm("Are you sure you want to delete this listing? This action cannot be undone.")) {
       return;
     }
@@ -109,10 +115,25 @@ export default function ListingDetailClient({
   console.log('Listing imageUrl:', listing.imageUrl ? 'Has image' : 'No image', listing.imageUrl?.substring(0, 50));
 
   return (
-    <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-12">
-      <div className="grid md:grid-cols-2 gap-8">
+    <>
+      <div className="sticky top-0 z-10 bg-white border-b border-[#EAEAEA] shadow-sm">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-4">
+          <button
+            onClick={() => router.push('/browse')}
+            className="flex items-center gap-2 text-[#5D845F] hover:text-[#4d6f4f] transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="font-semibold">Back to Browse</span>
+          </button>
+        </div>
+      </div>
+      
+      <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-12">
+        <div className="grid md:grid-cols-2 gap-8">
         <div>
-          <div className="aspect-square bg-[#F7F7F7] rounded-2xl overflow-hidden mb-4">
+          <div className="aspect-square bg-[#F7F7F7] rounded-2xl overflow-hidden mb-4 relative">
             <img
               src={listing.imageUrl || "https://i.imgur.com/Qj04L0z.png"}
               alt={listing.title}
@@ -122,6 +143,13 @@ export default function ListingDetailClient({
                 e.currentTarget.src = "https://i.imgur.com/Qj04L0z.png";
               }}
             />
+            {isTraded && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <span className="bg-[#5D845F] text-white px-6 py-3 rounded-full text-lg font-bold">
+                  TRADED
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -180,22 +208,36 @@ export default function ListingDetailClient({
             </button>
           )}
 
-          {isOwnListing && (
-            <div className="flex gap-3">
-              <Link
-                href={`/listings/${listing.id}/edit`}
-                className="flex-1 text-center border border-[#5D845F] text-[#5D845F] py-3 rounded-[10px] font-semibold hover:bg-[#5D845F] hover:text-white transition"
-              >
-                Edit
-              </Link>
-              <button
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex-1 border border-red-500 text-red-500 py-3 rounded-[10px] font-semibold hover:bg-red-500 hover:text-white transition disabled:opacity-50"
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
+          {!isOwnListing && isTraded && (
+            <div className="bg-gray-100 border border-gray-300 text-gray-600 py-3 rounded-[10px] text-center font-semibold">
+              This item has been traded
             </div>
+          )}
+
+          {isOwnListing && (
+            <>
+              {isTraded ? (
+                <div className="bg-gray-100 border border-gray-300 text-gray-600 py-3 rounded-[10px] text-center font-semibold">
+                  This item has been traded
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <Link
+                    href={`/listings/${listing.id}/edit`}
+                    className="flex-1 text-center border border-[#5D845F] text-[#5D845F] py-3 rounded-[10px] font-semibold hover:bg-[#5D845F] hover:text-white transition"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    className="flex-1 border border-red-500 text-red-500 py-3 rounded-[10px] font-semibold hover:bg-red-500 hover:text-white transition disabled:opacity-50"
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -250,7 +292,7 @@ export default function ListingDetailClient({
           </div>
         </div>
       )}
-    </main>
+      </main>
+    </>
   );
 }
-
