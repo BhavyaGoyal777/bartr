@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  role          Role      @default(USER)
+  profile       Profile?
+  listings      Listing[]
+  bartrInitiator Bartr[]  @relation("BartrInitiator")
+  bartrReceiver Bartr[]   @relation("BartrReceiver")
+  messages      Message[]
+  notifications Notification[]
+  reviewsGiven  Review[]  @relation("Reviewer")
+  reviewsReceived Review[] @relation("Reviewee")
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                     String   @id @default(cuid())
+  userId                 String
+  accountId              String
+  providerId             String
+  accessToken            String?
+  refreshToken           String?
+  idToken                String?
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  scope                  String?
+  password               String?
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier])
+}
+
+model Profile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  bio           String?
+  location      String?
+  memberSince   DateTime  @default(now())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Listing {
+  id              String       @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  condition       String
+  listingType     ListingType
+  swapPreferences String?
+  userId          String
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl        String?
+  status          ListingStatus @default(ACTIVE)
+  bartrs          Bartr[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Bartr {
+  id          String       @id @default(cuid())
+  initiatorId String
+  receiverId  String
+  listingId  String
+  offeredListingId String?
+  status      BartrStatus  @default(PENDING)
+  message     String?
+  initiatorConfirmed Boolean @default(false)
+  receiverConfirmed Boolean @default(false)
+  initiator   User         @relation("BartrInitiator", fields: [initiatorId], references: [id])
+  receiver    User         @relation("BartrReceiver", fields: [receiverId], references: [id])
+  listing     Listing      @relation(fields: [listingId], references: [id])
+  messages    Message[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  completedAt DateTime?
+
+  @@index([initiatorId])
+  @@index([receiverId])
+  @@index([status])
+}
+
+model Message {
+  id        String      @id @default(cuid())
+  bartrId  String
+  senderId String
+  content  String
+  messageType MessageType @default(TEXT)
+  bartr    Bartr       @relation(fields: [bartrId], references: [id], onDelete: Cascade)
+  sender   User        @relation(fields: [senderId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@index([bartrId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  reviewerId  String
+  revieweeId  String
+  bartrId     String
+  rating      Int
+  comment     String?
+  reviewer    User     @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee    User     @relation("Reviewee", fields: [revieweeId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([reviewerId, bartrId])
+  @@index([revieweeId])
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String?
+  createdAt   DateTime @default(now())
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+}
+
+enum Role {
+  ADMIN
+  USER
+  GUEST
+}
+
+enum ListingType {
+  BARTER
+  DONATION
+}
+
+enum ListingStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+}
+
+enum BartrStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  CLOSE_DEAL_REQUEST
+  CLOSE_DEAL_ACCEPTED
+  CLOSE_DEAL_REJECTED
+}

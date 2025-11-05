@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Get Started</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .koulen-font {
+      font-family: 'Koulen', cursive;
+    }
+  </style>
+</head>
+<body class="bg-white min-h-screen flex items-center justify-center p-4">
+
+  <!-- Login Card -->
+  <div class="relative w-full max-w-[420px] bg-white border border-[#D6D6D6] rounded-[20px] shadow-lg p-5 sm:p-6 md:p-8 mx-auto">
+
+    <!-- Small Top Cactus (inside login) -->
+    <div class="absolute -top-8 left-1/2 -translate-x-1/2 w-[80px] opacity-70">
+      <img 
+        src="https://github.com/kryptobolt07/assests/blob/main/login/single_cactus.svg?raw=true"
+        alt="Cactus Decoration" 
+        class="w-full h-auto object-contain drop-shadow-[6px_5px_3px_#E3E3E3]"
+      >
+    </div>
+
+    <!-- Header -->
+    <div class="mb-6 md:mb-8 text-center mt-6">
+      <h1 class="koulen-font text-[26px] sm:text-[30px] text-black">LOGIN</h1>
+      <p class="text-[16px] sm:text-[18px] text-black mt-1">to get started</p>
+    </div>
+
+    <!-- Form -->
+    <form action="#" method="POST" class="space-y-4">
+      <input 
+        type="email" 
+        placeholder="itsnaeemanjum@gmail.com"
+        class="w-full px-4 py-3 bg-white border border-[#EAEAEA] rounded-[10px] text-[14px] text-[#333333] placeholder:text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#5D845F] shadow-sm"
+        aria-label="Email"
+      >
+      <input 
+        type="password" 
+        placeholder="Password"
+        class="w-full px-4 py-3 bg-white border border-[#EAEAEA] rounded-[10px] text-[14px] text-[#333333] placeholder:text-[#333333] focus:outline-none focus:ring-2 focus:ring-[#5D845F] shadow-sm"
+        aria-label="Password"
+      >
+
+      <div class="text-right pt-1">
+        <a href="#" class="text-[13px] sm:text-[14px] text-[#333333] hover:text-[#5D845F] transition">Forgot Password?</a>
+      </div>
+
+      <button 
+        type="submit"
+        class="w-full bg-[#5D845F] hover:bg-[#4d6f4f] text-white text-[14px] py-3 rounded-[10px] shadow-md border border-[#EAEAEA] mt-5"
+      >
+        Continue
+      </button>
+    </form>
+
+    <!-- Divider -->
+    <div class="relative my-5">
+      <div class="absolute inset-0 flex items-center">
+        <div class="w-full border-t border-[#EAEAEA]"></div>
+      </div>
+      <div class="relative flex justify-center text-sm">
+        <span class="px-3 bg-white text-[#B0A9A9] text-[13px]">Or</span>
+      </div>
+    </div>
+
+    <!-- Social Buttons -->
+    <div class="space-y-3 mb-5">
+      <button class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[#EAEAEA] rounded-[10px] hover:bg-gray-50 transition" aria-label="Login with Google">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4" alt="Google logo">
+        <span class="text-[#333333] text-[14px]">Login with Google</span>
+      </button>
+
+      <button class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[#EAEAEA] rounded-[10px] hover:bg-gray-50 transition" aria-label="Login with GitHub">
+        <img src="https://www.svgrepo.com/show/512317/github-142.svg" class="w-4 h-4" alt="GitHub logo">
+        <span class="text-[#333333] text-[14px]">Login with GitHub</span>
+      </button>
+    </div>
+
+    <!-- Sign Up Link -->
+    <div class="text-center">
+      <p class="text-[13px] sm:text-[14px] text-[#333333]">
+        New User? 
+        <a href="#" class="text-[#FF6B35] hover:text-[#e55a2b] font-semibold">Register</a>
+      </p>
+    </div>
+  </div>
+
+</body>
+</html>
+

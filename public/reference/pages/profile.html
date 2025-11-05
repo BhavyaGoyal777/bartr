@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BARTR — Profile</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Extend Tailwind config if needed, but the previous page added 'bartr-light-green'
+    // I will add a color for the active tab indicator for better control.
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'bartr-light-green': '#EAF0E8', // From previous 'Browse' page
+            'profile-active-indicator': '#FF9EB9', // A pink/magenta for the active tab indicator (from image)
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Koulen&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bartr-green: #5D845F;
+      --bartr-green-hover: #4d6f4f;
+      --border-gray: #EAEAEA;
+      --muted: #B0A9A9;
+      --cactus-shadow: drop-shadow(0px 18px 30px rgba(0,0,0,0.15));
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .koulen { font-family: 'Koulen', cursive; }
+  </style>
+</head>
+
+<body class="bg-white text-[#333333] relative min-h-screen pb-20 md:pb-0">
+
+  <!-- ========================================================================= -->
+  <!-- 1. PUBLIC PROFILE VIEW (app/(dashboard)/profile/[userId]/page.tsx) -->
+  <!-- ========================================================================= -->
+
+  <!-- Header (Desktop Branding & Nav) -->
+  <header class="bg-white border-b hidden md:block">
+    <div class="max-w-7xl mx-auto px-6 md:px-12 lg:px-24 py-4 flex items-center justify-between">
+      <span class="koulen text-2xl md:text-3xl text-[var(--bartr-green)]">BARTR</span>
+
+      <nav class="flex items-center gap-6">
+        <a href="#" class="text-sm text-[#333333] hover:text-[var(--bartr-green)]">Browse</a>
+        <a href="#" class="text-sm text-[#333333] hover:text-[var(--bartr-green)]">Messages</a>
+        <button class="text-sm px-4 py-2 rounded-[10px] bg-[var(--bartr-green)] hover:bg-[var(--bartr-green-hover)] text-white border border-[var(--border-gray)]">
+          Post Item
+        </button>
+        <!-- Profile is active on this page -->
+        <a href="#" class="relative p-1 rounded-full border-2 border-[var(--bartr-green)]">
+          <img src="https://raw.githubusercontent.com/kryptobolt07/assests/main/chat/profile_1.svg" alt="profile" class="w-8 h-8 rounded-full object-cover">
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-xl mx-auto px-4 md:px-6 py-0 md:py-8">
+
+    <!-- Mobile Top Bar (Matching Image) -->
+    <div class="flex justify-between items-center py-4 border-b md:hidden">
+        <button class="text-[#333333] p-1">
+            <!-- Hamburger Menu Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+            </svg>
+        </button>
+        <h1 class="text-xl font-bold text-[#333333]">Profile</h1>
+        <!-- Invisible element for centering on mobile -->
+        <div class="w-6 h-6"></div>
+    </div>
+
+    <!-- Profile Info Section -->
+    <section class="text-center py-6 md:py-10">
+        <!-- Avatar - Using a placeholder for the 3D figure -->
+        <div class="mb-4">
+            <img 
+                src="https://raw.githubusercontent.com/kryptobolt07/assests/main/chat/profile_1.svg" 
+                alt="Sophia Carter Avatar" 
+                class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover mx-auto"
+            />
+        </div>
+        <h2 class="text-2xl md:text-3xl font-bold mb-1">Sophia Carter</h2>
+        <!-- Rating and Joined Date -->
+        <p class="text-[var(--bartr-green)] text-sm font-semibold">4.8 (125 reviews)</p>
+        <p class="text-[var(--muted)] text-sm mb-4">Joined 2021</p>
+        
+        <!-- Bio (New requirement) -->
+        <p class="text-sm text-[#6b6b6b] max-w-sm mx-auto mb-6">
+            Avid swapper of vintage clothing and unique home decor. Always looking for unique finds!
+        </p>
+        
+        <!-- Location (New requirement) -->
+        <div class="flex items-center justify-center text-sm text-[#333333] mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1 text-[var(--bartr-green)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.793A8 8 0 0112 20a8 8 0 01-5.657-3.207M12 12a3 3 0 110-6 3 3 0 010 6z" />
+            </svg>
+            <span>San Francisco, CA</span>
+        </div>
+        
+        <!-- Edit Profile Button (if own profile) -->
+        <div class="md:flex justify-center hidden">
+            <button class="text-sm px-6 py-2 rounded-[10px] border border-[var(--bartr-green)] text-[var(--bartr-green)] hover:bg-[var(--bartr-green)] hover:text-white transition">
+                Edit Profile
+            </button>
+        </div>
+    </section>
+    
+    <!-- Stats Row (New requirement: Total bartrs, donations, rating) -->
+    <section class="flex justify-around items-center py-4 bg-gray-50 rounded-xl mb-8">
+        <div class="text-center">
+            <p class="text-lg font-bold">45</p>
+            <p class="text-xs text-[var(--muted)]">Total Bartrs</p>
+        </div>
+        <div class="text-center">
+            <p class="text-lg font-bold text-[var(--bartr-green)]">4.8</p>
+            <p class="text-xs text-[var(--muted)]">Rating</p>
+        </div>
+        <div class="text-center">
+            <p class="text-lg font-bold">3</p>
+            <p class="text-xs text-[var(--muted)]">Donations</p>
+        </div>
+    </section>
+
+    <!-- Tabs Navigation -->
+    <nav class="flex justify-between md:justify-around text-base font-semibold border-b border-[var(--border-gray)] mb-6">
+        <!-- Active Tab: Listings (Black text, pink/magenta indicator) -->
+        <div class="text-center pb-2 border-b-2 border-profile-active-indicator text-[#333333] w-1/3 md:w-auto px-4">
+            Listings
+        </div>
+        <!-- Inactive Tab: History (Muted Green text, no indicator) -->
+        <div class="text-center pb-2 border-b-2 border-transparent text-[var(--bartr-green)] hover:border-gray-300 w-1/3 md:w-auto px-4">
+            History
+        </div>
+        <!-- Inactive Tab: Badges (Muted Green text, no indicator) -->
+        <div class="text-center pb-2 border-b-2 border-transparent text-[var(--bartr-green)] hover:border-gray-300 w-1/3 md:w-auto px-4">
+            Badges
+        </div>
+        <!-- Reviews Tab (Added from functional spec, matching inactive style) -->
+        <div class="hidden md:block text-center pb-2 border-b-2 border-transparent text-[var(--bartr-green)] hover:border-gray-300 w-1/4 px-4">
+            Reviews
+        </div>
+    </nav>
+
+    <!-- Active Listings Content -->
+    <section class="pb-12">
+        <h3 class="text-xl font-bold mb-4">Active Listings</h3>
+        
+        <div class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3">
+            
+            <!-- Item 1: Vintage Leather Jacket -->
+            <a href="#" class="block group">
+                <div class="aspect-square bg-[#F7F7F7] rounded-xl overflow-hidden mb-2">
+                    <img src="https://i.imgur.com/Qj04L0z.png" alt="Vintage Leather Jacket" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                </div>
+                <p class="text-base font-semibold text-[#333333]">Vintage Leather Jacket</p>
+            </a>
+            
+            <!-- Item 2: Handmade Ceramic Vase -->
+            <a href="#" class="block group">
+                <div class="aspect-square bg-[#F7F7F7] rounded-xl overflow-hidden mb-2">
+                    <img src="https://i.imgur.com/gK9QY5e.png" alt="Handmade Ceramic Vase" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                </div>
+                <p class="text-base font-semibold text-[#333333]">Handmade Ceramic Vase</p>
+            </a>
+            
+            <!-- Item 3: Antique Wooden Chair -->
+            <a href="#" class="block group">
+                <div class="aspect-square bg-[#F7F7F7] rounded-xl overflow-hidden mb-2">
+                    <img src="https://i.imgur.com/w4p8bXl.png" alt="Antique Wooden Chair" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" />
+                </div>
+                <p class="text-base font-semibold text-[#333333]">Antique Wooden Chair</p>
+            </a>
+            
+        </div>
+    </section>
+
+  </main>
+
+  <!-- Footer (Desktop) -->
+  <footer class="hidden md:block border-t pt-8 pb-12 mt-12">
+    <div class="max-w-7xl mx-auto px-6 md:px-12 lg:px-24">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <span class="koulen text-xl text-[var(--bartr-green)]">BARTR</span>
+        <div class="text-sm text-[#6b6b6b]">© 2025 BARTR. All rights reserved.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bottom Mobile Navbar (Fixed at bottom) -->
+  <nav class="fixed bottom-0 left-0 w-full bg-white border-t border-[var(--border-gray)] flex justify-around items-center py-3 md:hidden z-10">
+    
+    <!-- Inactive: Browse (Icon and text muted green) -->
+    <a href="#" class="flex flex-col items-center text-[var(--bartr-green)] hover:text-[#333333]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" /><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35" />
+      </svg>
+      <span class="text-xs">Browse</span>
+    </a>
+
+    <!-- Inactive: Post Item (Icon and text muted green) -->
+    <a href="#" class="flex flex-col items-center text-[var(--bartr-green)] hover:text-[#333333]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      <span class="text-xs">Post Item</span>
+    </a>
+
+    <!-- Inactive: Messages (Icon and text muted green) -->
+    <a href="#" class="flex flex-col items-center text-[var(--bartr-green)] hover:text-[#333333]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8m-8 4h5m9 5l-3-3H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v12z" />
+      </svg>
+      <span class="text-xs">Messages</span>
+    </a>
+
+    <!-- Active: Profile (Icon and text black, matching image) -->
+    <a href="#" class="flex flex-col items-center text-[#333333] font-medium">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.485 0 4.847.576 6.879 1.804M12 11a4 4 0 100-8 4 4 0 000 8z" />
+      </svg>
+      <span class="text-xs">Profile</span>
+    </a>
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- 2. EDIT PROFILE VIEW (app/(dashboard)/profile/edit/page.tsx) -->
+  <!-- This is an alternate layout and should be a separate Next.js component -->
+  <!-- ========================================================================= -->
+  <div class="hidden" id="edit-profile-view">
+    <main class="max-w-xl mx-auto px-6 md:px-12 py-8 md:py-16">
+        <h1 class="text-3xl md:text-4xl font-bold text-[#333333] mb-8 text-center md:text-left">Edit Profile</h1>
+
+        <form class="space-y-6" action="#" method="POST">
+            <!-- Avatar Upload -->
+            <div class="flex flex-col items-center mb-8">
+                <img 
+                    src="https://raw.githubusercontent.com/kryptobolt07/assests/main/chat/profile_1.svg" 
+                    alt="Current Avatar" 
+                    class="w-24 h-24 rounded-full object-cover mb-3"
+                />
+                <label for="avatar-upload" class="cursor-pointer text-sm font-medium text-[var(--bartr-green)] hover:text-[var(--bartr-green-hover)]">
+                    Change Photo
+                </label>
+                <input type="file" id="avatar-upload" class="hidden" />
+            </div>
+
+            <!-- Name Field -->
+            <div>
+                <label class="block text-sm font-medium mb-2">Name</label>
+                <input type="text" value="Sophia Carter"
+                    class="w-full px-4 py-3 rounded-[10px] border border-[var(--border-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--bartr-green)]" />
+            </div>
+
+            <!-- Location Field -->
+            <div>
+                <label class="block text-sm font-medium mb-2">Location</label>
+                <input type="text" value="San Francisco, CA"
+                    class="w-full px-4 py-3 rounded-[10px] border border-[var(--border-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--bartr-green)]" />
+            </div>
+
+            <!-- Bio Field -->
+            <div>
+                <label class="block text-sm font-medium mb-2">Bio</label>
+                <textarea rows="4"
+                    class="w-full px-4 py-3 rounded-[10px] border border-[var(--border-gray)] focus:outline-none focus:ring-2 focus:ring-[var(--bartr-green)]">Avid swapper of vintage clothing and unique home decor. Always looking for unique finds!</textarea>
+            </div>
+
+            <!-- Save Button -->
+            <div class="pt-4 flex flex-col items-center md:items-start space-y-4">
+                <button type="submit"
+                    class="w-full md:w-auto bg-[var(--bartr-green)] hover:bg-[var(--bartr-green-hover)] text-white px-8 py-3 rounded-[10px] shadow-md">
+                    Save Changes
+                </button>
+                
+                <!-- Delete Account Button (Danger zone) -->
+                <button type="button"
+                    class="w-full md:w-auto text-sm text-red-500 hover:text-red-700 underline pt-4">
+                    Delete Account
+                </button>
+            </div>
+        </form>
+    </main>
+  </div>
+
+</body>
+</html>
