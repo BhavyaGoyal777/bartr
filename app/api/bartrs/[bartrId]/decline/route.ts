@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/mongodb";
+import { Bartr, Notification } from "@/lib/models";
 import { auth } from "@/lib/auth";
 
 export async function POST(
@@ -7,6 +8,8 @@ export async function POST(
   { params }: { params: Promise<{ bartrId: string }> }
 ) {
   try {
+    await connectDB();
+
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -17,9 +20,7 @@ export async function POST(
 
     const { bartrId } = await params;
 
-    const bartr = await prisma.bartr.findUnique({
-      where: { id: bartrId },
-    });
+    const bartr = await Bartr.findById(bartrId);
 
     if (!bartr) {
       return NextResponse.json({ error: "Bartr not found" }, { status: 404 });
@@ -29,21 +30,23 @@ export async function POST(
       return NextResponse.json({ error: "Only receiver can decline" }, { status: 403 });
     }
 
-    const updatedBartr = await prisma.bartr.update({
-      where: { id: bartrId },
-      data: { status: "DECLINED" },
+    bartr.status = "DECLINED";
+    await bartr.save();
+
+    await Notification.create({
+      userId: bartr.initiatorId,
+      type: "BARTR_DECLINED",
+      title: "Bartr Declined",
+      message: "Your bartr request was declined",
     });
 
-    await prisma.notification.create({
-      data: {
-        userId: bartr.initiatorId,
-        type: "BARTR_DECLINED",
-        title: "Bartr Declined",
-        message: "Your bartr request was declined",
-      },
-    });
+    const result = {
+      ...bartr.toObject(),
+      id: bartr._id.toString(),
+      messages: [], // Initialize messages as empty array for client compatibility
+    };
 
-    return NextResponse.json(updatedBartr);
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error declining bartr:", error);
     return NextResponse.json({ error: "Failed to decline bartr" }, { status: 500 });

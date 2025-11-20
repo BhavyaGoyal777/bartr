@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/mongodb";
+import { Listing } from "@/lib/models";
 import { auth } from "@/lib/auth";
 
 export async function DELETE(
@@ -7,6 +8,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectDB();
+
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -17,9 +20,7 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const listing = await prisma.listing.findUnique({
-      where: { id },
-    });
+    const listing = await Listing.findById(id);
 
     if (!listing) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -34,10 +35,8 @@ export async function DELETE(
     }
 
     // Soft delete - update status instead of deleting to preserve trade history
-    await prisma.listing.update({
-      where: { id },
-      data: { status: "INACTIVE" },
-    });
+    listing.status = "INACTIVE";
+    await listing.save();
 
     return NextResponse.json({ message: "Listing deleted" });
   } catch (error) {
@@ -51,6 +50,8 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectDB();
+
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -61,9 +62,7 @@ export async function PATCH(
 
     const { id } = await params;
 
-    const listing = await prisma.listing.findUnique({
-      where: { id },
-    });
+    const listing = await Listing.findById(id);
 
     if (!listing) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
@@ -80,20 +79,17 @@ export async function PATCH(
     const body = await request.json();
     const { title, description, category, condition, listingType, swapPreferences, imageUrl } = body;
 
-    const updatedListing = await prisma.listing.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        category,
-        condition,
-        listingType,
-        swapPreferences: swapPreferences || null,
-        imageUrl: imageUrl || listing.imageUrl,
-      },
-    });
+    listing.title = title;
+    listing.description = description;
+    listing.category = category;
+    listing.condition = condition;
+    listing.listingType = listingType;
+    listing.swapPreferences = swapPreferences || undefined;
+    if (imageUrl) listing.imageUrl = imageUrl;
 
-    return NextResponse.json(updatedListing);
+    await listing.save();
+
+    return NextResponse.json(listing);
   } catch (error) {
     console.error("Error updating listing:", error);
     return NextResponse.json({ error: "Failed to update listing" }, { status: 500 });

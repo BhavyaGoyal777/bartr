@@ -1,11 +1,26 @@
 import { betterAuth } from "better-auth"
-import { prismaAdapter } from "better-auth/adapters/prisma"
-import { prisma } from "./prisma"
+import { mongodbAdapter } from "better-auth/adapters/mongodb"
+import mongoose from "mongoose"
+
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL;
+
+if (!MONGODB_URI) {
+  throw new Error(
+    'Please define the MONGODB_URI or DATABASE_URL environment variable inside .env'
+  );
+}
+
+// Connect to MongoDB - allow buffering until connection is ready
+if (mongoose.connection.readyState === 0) {
+  mongoose.connect(MONGODB_URI).then(() => {
+    console.log('MongoDB connected for better-auth');
+  }).catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+}
 
 export const auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "sqlite",
-  }),
+  database: mongodbAdapter(mongoose.connection),
   debug: true,
   emailAndPassword: {
     enabled: true,

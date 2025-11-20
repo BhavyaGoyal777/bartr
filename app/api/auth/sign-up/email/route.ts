@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/mongodb";
+import { User, Account } from "@/lib/models";
 import { hash } from "bcryptjs";
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const body = await request.json();
     const { name, email, password } = body;
 
@@ -21,9 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await User.findOne({ email }).lean();
 
     if (existingUser) {
       return NextResponse.json(
@@ -34,21 +35,17 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        emailVerified: false,
-      },
+    const user = await User.create({
+      name,
+      email,
+      emailVerified: false,
     });
 
-    await prisma.account.create({
-      data: {
-        userId: user.id,
-        accountId: user.id,
-        providerId: "credential",
-        password: hashedPassword,
-      },
+    await Account.create({
+      userId: user._id.toString(),
+      accountId: user._id.toString(),
+      providerId: "credential",
+      password: hashedPassword,
     });
 
     return NextResponse.json(
@@ -63,4 +60,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

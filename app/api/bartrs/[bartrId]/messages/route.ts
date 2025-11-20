@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/mongodb";
+import { Bartr, Message, User, Notification } from "@/lib/models";
 import { auth } from "@/lib/auth";
 
 export async function POST(
@@ -7,6 +8,8 @@ export async function POST(
   { params }: { params: Promise<{ bartrId: string }> }
 ) {
   try {
+    await connectDB();
+
     const session = await auth.api.getSession({
       headers: request.headers,
     });
@@ -19,9 +22,7 @@ export async function POST(
     const body = await request.json();
     const { content, messageType = "TEXT" } = body;
 
-    const bartr = await prisma.bartr.findUnique({
-      where: { id: bartrId },
-    });
+    const bartr = await Bartr.findById(bartrId);
 
     if (!bartr) {
       return NextResponse.json({ error: "Bartr not found" }, { status: 404 });
@@ -31,36 +32,41 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const message = await prisma.message.create({
-      data: {
-        bartrId,
-        senderId: session.user.id,
-        content,
-        messageType,
-      },
-      include: {
-        sender: {
-          select: { id: true, name: true, image: true },
-        },
-      },
+    const message = await Message.create({
+      bartrId,
+      senderId: session.user.id,
+      content,
+      messageType,
     });
 
-    await prisma.bartr.update({
-      where: { id: bartrId },
-      data: { updatedAt: new Date() },
-    });
+    // Update bartr's updatedAt timestamp
+    bartr.updatedAt = new Date();
+    await bartr.save();
 
     const otherUserId = bartr.initiatorId === session.user.id ? bartr.receiverId : bartr.initiatorId;
-    await prisma.notification.create({
-      data: {
-        userId: otherUserId,
-        type: "NEW_MESSAGE",
-        title: "New Message",
-        message: `You have a new message`,
-      },
+    await Notification.create({
+      userId: otherUserId,
+      type: "NEW_MESSAGE",
+      title: "New Message",
+      message: `You have a new message`,
     });
 
-    return NextResponse.json(message, { status: 201 });
+    // Populate sender info
+    const sender = await User.findById(session.user.id)
+      .select('_id name image')
+      .lean();
+
+    const result = {
+      ...message.toObject(),
+      id: message._id.toString(),
+      sender: sender ? {
+        id: sender._id.toString(),
+        name: sender.name,
+        image: sender.image
+      } : null,
+    };
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error("Error creating message:", error);
     return NextResponse.json({ error: "Failed to create message" }, { status: 500 });

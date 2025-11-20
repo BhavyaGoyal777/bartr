@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import connectDB from "@/lib/mongodb";
+import { User, Account, Session } from "@/lib/models";
 import { compare } from "bcryptjs";
 
 function generateToken(): string {
@@ -13,6 +14,8 @@ function generateToken(): string {
 
 export async function POST(request: NextRequest) {
   try {
+    await connectDB();
+
     const body = await request.json();
     const { email, password } = body;
 
@@ -23,23 +26,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        accounts: {
-          where: { providerId: "credential" },
-        },
-      },
-    });
+    const user = await User.findOne({ email }).lean();
 
-    if (!user || user.accounts.length === 0) {
+    if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const account = user.accounts[0];
+    const accounts = await Account.find({
+      userId: user._id.toString(),
+      providerId: "credential"
+    }).lean();
+
+    if (accounts.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    const account = accounts[0];
     if (!account.password) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -55,12 +63,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await prisma.session.create({
-      data: {
-        userId: user.id,
-        token: generateToken(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      },
+    const session = await Session.create({
+      userId: user._id.toString(),
+      token: generateToken(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
     });
 
     const response = NextResponse.json({ success: true });
@@ -81,4 +87,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
