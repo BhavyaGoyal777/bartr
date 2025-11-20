@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -33,21 +34,26 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/sign-up/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
+      const response = await authClient.signUp.email({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
       });
 
-      if (response.ok) {
-        router.push("/login?registered=true");
+      if (response.error) {
+        setError(response.error.message || "Failed to create account");
       } else {
-        const data = await response.json();
-        setError(data.error || "Failed to create account");
+        // Auto sign in after successful signup
+        const signInResponse = await authClient.signIn.email({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInResponse.error) {
+          router.push("/login?registered=true");
+        } else {
+          window.location.href = "/browse";
+        }
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -58,33 +64,10 @@ export default function SignupPage() {
 
   const handleSocialSignup = async (provider: "google" | "github") => {
     try {
-      const res = await fetch("/api/auth/sign-in/social", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider }),
+      await authClient.signIn.social({
+        provider,
+        callbackURL: "/browse",
       });
-
-      if (res.redirected) {
-        window.location.href = res.url;
-        return;
-      }
-
-      const location = res.headers.get("location");
-      if (location) {
-        window.location.href = location;
-        return;
-      }
-
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data?.redirect && data?.url) {
-          window.location.href = data.url;
-          return;
-        }
-      }
-
-      window.location.href = `/api/auth/callback/${provider}`;
     } catch (error) {
       console.error("Social signup error:", error);
     }

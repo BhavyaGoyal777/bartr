@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,17 +18,15 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/sign-in/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const response = await authClient.signIn.email({
+        email,
+        password,
       });
 
-      if (response.ok) {
-        window.location.href = "/browse";
+      if (response.error) {
+        setError(response.error.message || "Invalid credentials");
       } else {
-        const data = await response.json();
-        setError(data.error || "Invalid credentials");
+        window.location.href = "/browse";
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -110,28 +109,10 @@ export default function LoginPage() {
         <div className="space-y-3 mb-5">
           <button
             onClick={async () => {
-              const res = await fetch("/api/auth/sign-in/social", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ provider: "google" }),
-              })
-              const contentType = res.headers.get("content-type") || ""
-              if (res.redirected) {
-                window.location.href = res.url
-                return
-              }
-              const location = res.headers.get("location")
-              if (location) {
-                window.location.href = location
-                return
-              }
-              if (contentType.includes("application/json")) {
-                const data = await res.json()
-                if (data?.redirect && data?.url) window.location.href = data.url
-                return
-              }
-              // Fallback: navigate to callback if provider succeeded
-              window.location.href = "/api/auth/callback/google"
+              await authClient.signIn.social({
+                provider: "google",
+                callbackURL: "/browse",
+              });
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[#EAEAEA] rounded-[10px] hover:bg-gray-50 transition"
             aria-label="Login with Google"
@@ -146,27 +127,10 @@ export default function LoginPage() {
 
           <button
             onClick={async () => {
-              const res = await fetch("/api/auth/sign-in/social", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ provider: "github" }),
-              })
-              const contentType = res.headers.get("content-type") || ""
-              if (res.redirected) {
-                window.location.href = res.url
-                return
-              }
-              const location = res.headers.get("location")
-              if (location) {
-                window.location.href = location
-                return
-              }
-              if (contentType.includes("application/json")) {
-                const data = await res.json()
-                if (data?.redirect && data?.url) window.location.href = data.url
-                return
-              }
-              window.location.href = "/api/auth/callback/github"
+              await authClient.signIn.social({
+                provider: "github",
+                callbackURL: "/browse",
+              });
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-[#EAEAEA] rounded-[10px] hover:bg-gray-50 transition"
             aria-label="Login with GitHub"
